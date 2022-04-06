@@ -3,12 +3,27 @@
   <head>
     <meta charset="utf-8">
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
-    <title>Unity WebGL Player | nikaleksey1projectwebgl_gzip</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>nikaleksey1projectwebgl_gzip</title>
+    <link rel="shortcut icon" href="TemplateData/favicon.ico">
+    <link rel="stylesheet" href="TemplateData/style.css">
 	<script src="https://unpkg.com/@vkontakte/vk-bridge/dist/browser.min.js"></script>
   </head>
-  <body style="text-align: center">
-    <canvas id="unity-canvas" width=480 height=854 style="width: 480px; height: 854px; background: url('Build/nikaleksey1projectwebgl_gzip.jpg') center / cover"></canvas>
-    <script src="Build/nikaleksey1projectwebgl_gzip.loader.js"></script>
+  <body class="dark">
+    <div id="unity-container" class="unity-desktop">
+      <canvas id="unity-canvas"></canvas>
+    </div>
+    <div id="loading-cover" style="display:none;">
+      <div id="unity-loading-bar">
+        <div id="unity-logo"><img src="logo.png"></div>
+        <div id="unity-progress-bar-empty" style="display: none;">
+          <div id="unity-progress-bar-full"></div>
+        </div>
+        <div class="spinner"></div>
+      </div>
+    </div>
+    <div id="unity-fullscreen-button" style="display: none;"></div>
+	
     <script>
 	
 	var  unityGame;
@@ -35,17 +50,82 @@
 		vkBridge.send("VKWebAppShowNativeAds", {ad_format: "reward"}).then(unityGame.SendMessage('Receiver', 'AddEnergy')).catch(error => console.log(error));
 	}
 	
-      createUnityInstance(document.querySelector("#unity-canvas"), {
-        dataUrl: "Build/nikaleksey1projectwebgl_gzip.data.gz",
-        frameworkUrl: "Build/nikaleksey1projectwebgl_gzip.framework.js.gz",
-        codeUrl: "Build/nikaleksey1projectwebgl_gzip.wasm.gz",
+      const hideFullScreenButton = "1";
+      const buildUrl = "Build";
+      const loaderUrl = buildUrl + "/nikaleksey1projectwebgl_gzip.loader.js";
+      const config = {
+        dataUrl: buildUrl + "/nikaleksey1projectwebgl_gzip.data.gz",
+        frameworkUrl: buildUrl + "/nikaleksey1projectwebgl_gzip.framework.js.gz",
+        codeUrl: buildUrl + "/nikaleksey1projectwebgl_gzip.wasm.gz",
         streamingAssetsUrl: "StreamingAssets",
         companyName: "DefaultCompany",
         productName: "nikaleksey1projectwebgl_gzip",
         productVersion: "0.1",
-        // matchWebGLToCanvasSize: false, // Uncomment this to separately control WebGL canvas render size and DOM element size.
-        // devicePixelRatio: 1, // Uncomment this to override low DPI rendering on high DPI displays.
-      });
+      };
+
+      const container = document.querySelector("#unity-container");
+      const canvas = document.querySelector("#unity-canvas");
+      const loadingCover = document.querySelector("#loading-cover");
+      const progressBarEmpty = document.querySelector("#unity-progress-bar-empty");
+      const progressBarFull = document.querySelector("#unity-progress-bar-full");
+      const fullscreenButton = document.querySelector("#unity-fullscreen-button");
+      const spinner = document.querySelector('.spinner');
+
+      const canFullscreen = (function() 
+	  {
+        for (const key of [
+            'exitFullscreen',
+            'webkitExitFullscreen',
+            'webkitCancelFullScreen',
+            'mozCancelFullScreen',
+            'msExitFullscreen',
+          ]) {
+          if (key in document) {
+            return true;
+          }
+        }
+        return false;
+      }());
+
+      if (/iPhone|iPad|iPod|Android/i.test(navigator.userAgent)) 
+	  {
+        container.className = "unity-mobile";
+        config.devicePixelRatio = 0;
+      }
+	  
+      loadingCover.style.display = "";
+
+      const script = document.createElement("script");
+      script.src = loaderUrl;
+      script.onload = () => 
+	  {
+        createUnityInstance(canvas, config, (progress) => 
+		{
+          spinner.style.display = "none";
+          progressBarEmpty.style.display = "";
+          progressBarFull.style.width = `${100 * progress}%`;
+        }).then((unityInstance) => 
+		{
+		  unityGame = unityInstance; //This mine
+		  
+          loadingCover.style.display = "none";
+          if (canFullscreen) 
+		  {
+            if (!hideFullScreenButton) 
+			{
+              fullscreenButton.style.display = "";
+            }
+            fullscreenButton.onclick = () => 
+			{
+              unityInstance.SetFullscreen(1);
+            };
+          }
+        }).catch((message) => 
+		{
+          alert(message);
+        });
+      };
+      document.body.appendChild(script);
     </script>
   </body>
 </html>
