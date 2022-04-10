@@ -50,7 +50,7 @@
 		vkBridge.send("VKWebAppShowNativeAds", {ad_format: "reward"}).then(unityGame.SendMessage('Receiver', 'AddEnergy')).catch(error => console.log(error));
 	}
 	
-	function VKWebAppShowNativeAdsInterstitialMethod()
+	function ShowInterstitialIndexMethod()
 	{
 		vkBridge.send("VKWebAppShowNativeAds", {ad_format: "interstitial"}).then(unityGame.SendMessage('Receiver', 'ShowAdwHandler')).catch(error => console.log(error));
 	}
